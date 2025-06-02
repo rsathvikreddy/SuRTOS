@@ -39,7 +39,7 @@ int main(void) {
     // Loop forever. In a bare-metal system, main() should not return.
     while (1) {
         // You could put a simple delay here and print something periodically
-        // in a more advanced test. For now, just loop.
+        // For now, just loop.
     }
 
     return 0; // This line should never be reached.
