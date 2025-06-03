@@ -6,6 +6,12 @@
     .global Reset_Handler
     .global _estack         // Symbol for the end of the stack (top of stack)
 
+    // External symbols defined in C
+    .global g_current_task
+    .global g_next_scheduled_task
+    .extern SysTick_Handler // Defined in rtos_kernel.c
+    .extern main            // Entry point to C code
+
     // --- Vector Table ---
     // This section must be placed at the beginning of memory by the linker script.
     .section .isr_vector, "a", %progbits // "a"=allocatable, "x"=executable, %progbits=contains program data
@@ -93,11 +99,54 @@ Default_Handler:
     .weak   DebugMon_Handler
     .thumb_set DebugMon_Handler, Default_Handler
 
-    .weak   PendSV_Handler
-    .thumb_set PendSV_Handler, Default_Handler
+    .weak   PendSV_Handler  // This will be replaced by our strong definition below
+    // .thumb_set PendSV_Handler, Default_Handler // Remove this line as we provide a full PendSV_Handler
 
+    // SysTick_Handler is defined in C, so the linker will pick that strong symbol.
+    // The weak definition below is just a fallback if C definition is not found.
     .weak   SysTick_Handler
     .thumb_set SysTick_Handler, Default_Handler
+
+
+    // --- PendSV Handler (Context Switch) ---
+    .section .text.PendSV_Handler, "ax", %progbits
+    .global PendSV_Handler      // Ensure it's global
+    .type PendSV_Handler, %function
+PendSV_Handler:
+    CPSID   I                               // Disable interrupts to ensure atomicity
+
+    // Save context of the current task (g_current_task)
+    LDR     R2, =g_current_task             // R2 = &g_current_task
+    LDR     R3, [R2]                        // R3 = g_current_task (TCB pointer)
+    CBZ     R3, PendSV_RestoreContextOnly   // If g_current_task is NULL, skip saving context (first switch)
+
+    MRS     R0, PSP                         // R0 = Process Stack Pointer of current task
+    STMDB   R0!, {R4-R11}                   // Save R4-R11 onto the task's stack, update R0
+                                            // (Assumes ARM EABI where R4-R11 are callee-saved)
+    STR     R0, [R3]                        // Store new PSP back into current_task_tcb->stack_pointer
+                                            // (Assuming stack_pointer is the first field, offset 0)
+
+PendSV_RestoreContextOnly:
+    // Load context of the next task (g_next_scheduled_task)
+    LDR     R0, =g_next_scheduled_task      // R0 = &g_next_scheduled_task
+    LDR     R1, [R0]                        // R1 = g_next_scheduled_task (TCB pointer for task to switch to)
+
+    LDR     R2, =g_current_task             // R2 = &g_current_task
+    STR     R1, [R2]                        // g_current_task = g_next_scheduled_task (update g_current_task)
+
+    LDR     R0, [R1]                        // R0 = new_current_task_tcb->stack_pointer
+                                            // (Assuming stack_pointer is the first field, offset 0)
+    LDMIA   R0!, {R4-R11}                   // Restore R4-R11 from the new task's stack, update R0
+    MSR     PSP, R0                         // Set Process Stack Pointer to the new task's stack top
+
+    CPSIE   I                               // Re-enable interrupts
+
+    // Return from exception. This will use the EXC_RETURN value automatically
+    // loaded into LR when the PendSV exception was entered.
+    // For tasks, this should be 0xFFFFFFFD (return to Thread mode, use PSP).
+    // The hardware will automatically unstack the remaining registers (xPSR, PC, LR, R12, R3, R2, R1, R0).
+    BX      LR
+    .size PendSV_Handler, . - PendSV_Handler
 
     // The .stack section is not strictly necessary to define in the startup file
     // if the linker script defines _estack at the top of RAM.

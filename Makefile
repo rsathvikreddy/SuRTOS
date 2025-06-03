@@ -16,7 +16,7 @@ SIZE = $(PREFIX)size
 
 # Source files
 # C source files
-SRCS_C = src/main.c
+SRCS_C = src/main.c src/rtos_kernel.c
 # Assembly source files
 SRCS_S = startup/startup_cortexm3.S
 
@@ -100,10 +100,11 @@ $(TARGET).elf: $(OBJS) $(LDSCRIPT)
 # Clean up build artifacts
 clean:
 	@echo "Cleaning up..."
-	-if exist "$(TARGET).elf" del /F /Q "$(TARGET).elf"
-	-if exist "$(TARGET).map" del /F /Q "$(TARGET).map"
-	-if exist src if exist src\main.o del /F /Q src\main.o
-	-if exist startup if exist startup\startup_cortexm3.o del /F /Q startup\startup_cortexm3.o
+	-$(RM) $(TARGET).elf
+	-$(RM) $(TARGET).map
+	-$(RM) src/main.o
+	-$(RM) src/rtos_kernel.o
+	-$(RM) startup/startup_cortexm3.o
 	@echo "Clean complete."
 
 
@@ -116,6 +117,9 @@ clean:
 qemu: $(TARGET).elf
 	@echo "Starting QEMU with $(TARGET).elf..."
 	qemu-system-arm -M lm3s6965evb -kernel $(TARGET).elf -nographic -serial mon:stdio
+
+# Define RM for rm -f as default, can be overridden
+RM = rm -f
 
 # Rule to start QEMU in debug mode (paused, waiting for GDB)
 # -S: Start QEMU paused

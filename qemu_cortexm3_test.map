@@ -1,0 +1,238 @@
+
+There are no discarded input sections
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+FLASH            0x00000000         0x00040000         xr
+RAM              0x20000000         0x00010000         xrw
+*default*        0x00000000         0xffffffff
+
+Linker script and memory map
+
+LOAD src/main.o
+LOAD src/rtos_kernel.o
+LOAD startup/startup_cortexm3.o
+                0x20010000                        _estack = (ORIGIN (RAM) + LENGTH (RAM))
+
+.isr_vector     0x00000000       0x40
+ *(.isr_vector)
+ .isr_vector    0x00000000       0x40 startup/startup_cortexm3.o
+
+.text           0x00000040      0x53c
+ *(.text*)
+ .text          0x00000040        0x0 src/main.o
+ .text.print_char_uart0
+                0x00000040       0x20 src/main.o
+                0x00000040                print_char_uart0
+ .text.print_str_uart0
+                0x00000060       0x2c src/main.o
+                0x00000060                print_str_uart0
+ .text.task1_function
+                0x0000008c       0x2c src/main.o
+                0x0000008c                task1_function
+ .text.task2_function
+                0x000000b8       0x2c src/main.o
+                0x000000b8                task2_function
+ .text.main     0x000000e4       0x5c src/main.o
+                0x000000e4                main
+ .text          0x00000140        0x0 src/rtos_kernel.o
+ .text.rtos_generate_task_id
+                0x00000140       0x1c src/rtos_kernel.o
+ .text.rtos_task_create
+                0x0000015c      0x1ec src/rtos_kernel.o
+                0x0000015c                rtos_task_create
+ .text.rtos_schedule
+                0x00000348       0xa8 src/rtos_kernel.o
+                0x00000348                rtos_schedule
+ .text.rtos_init_systick
+                0x000003f0       0x60 src/rtos_kernel.o
+                0x000003f0                rtos_init_systick
+ .text.SysTick_Handler
+                0x00000450       0x44 src/rtos_kernel.o
+                0x00000450                SysTick_Handler
+ .text.rtos_start_scheduler
+                0x00000494       0x34 src/rtos_kernel.o
+                0x00000494                rtos_start_scheduler
+ .text          0x000004c8        0x0 startup/startup_cortexm3.o
+ .text.Reset_Handler
+                0x000004c8       0x10 startup/startup_cortexm3.o
+                0x000004c8                Reset_Handler
+ .text.Default_Handler
+                0x000004d8        0x2 startup/startup_cortexm3.o
+                0x000004d8                DebugMon_Handler
+                0x000004d8                HardFault_Handler
+                0x000004d8                NMI_Handler
+                0x000004d8                UsageFault_Handler
+                0x000004d8                MemManage_Handler
+                0x000004d8                SVC_Handler
+                0x000004d8                BusFault_Handler
+ *fill*         0x000004da        0x2
+ .text.PendSV_Handler
+                0x000004dc       0x30 startup/startup_cortexm3.o
+                0x000004dc                PendSV_Handler
+ *(.rodata*)
+ .rodata        0x0000050c       0x6f src/main.o
+                0x0000057c                        . = ALIGN (0x4)
+ *fill*         0x0000057b        0x1
+
+.glue_7         0x0000057c        0x0
+ .glue_7        0x0000057c        0x0 linker stubs
+
+.glue_7t        0x0000057c        0x0
+ .glue_7t       0x0000057c        0x0 linker stubs
+
+.vfp11_veneer   0x0000057c        0x0
+ .vfp11_veneer  0x0000057c        0x0 linker stubs
+
+.v4_bx          0x0000057c        0x0
+ .v4_bx         0x0000057c        0x0 linker stubs
+
+.iplt           0x0000057c        0x0
+ .iplt          0x0000057c        0x0 src/main.o
+
+.rel.dyn        0x0000057c        0x0
+ .rel.iplt      0x0000057c        0x0 src/main.o
+
+.data           0x20000000        0x0 load address 0x0000057c
+                0x20000000                        _sdata = .
+ *(.data*)
+ .data          0x20000000        0x0 src/main.o
+ .data          0x20000000        0x0 src/rtos_kernel.o
+ .data          0x20000000        0x0 startup/startup_cortexm3.o
+                0x20000000                        . = ALIGN (0x4)
+                0x20000000                        _edata = .
+
+.igot.plt       0x20000000        0x0 load address 0x0000057c
+ .igot.plt      0x20000000        0x0 src/main.o
+
+.bss            0x20000000      0x458 load address 0x0000057c
+                0x20000000                        _sbss = .
+ *(.bss*)
+ .bss           0x20000000        0x0 src/main.o
+ .bss           0x20000000        0x0 src/rtos_kernel.o
+ .bss.g_current_task
+                0x20000000        0x4 src/rtos_kernel.o
+                0x20000000                g_current_task
+ .bss.g_task_list_head
+                0x20000004        0x4 src/rtos_kernel.o
+                0x20000004                g_task_list_head
+ .bss.g_next_scheduled_task
+                0x20000008        0x4 src/rtos_kernel.o
+                0x20000008                g_next_scheduled_task
+ .bss.g_system_ticks
+                0x2000000c        0x4 src/rtos_kernel.o
+                0x2000000c                g_system_ticks
+ .bss.g_task_tcbs
+                0x20000010       0x40 src/rtos_kernel.o
+ .bss.g_task_stacks
+                0x20000050      0x400 src/rtos_kernel.o
+ .bss.g_tcb_in_use
+                0x20000450        0x4 src/rtos_kernel.o
+ .bss.g_next_task_id
+                0x20000454        0x4 src/rtos_kernel.o
+ .bss           0x20000458        0x0 startup/startup_cortexm3.o
+ *(COMMON)
+                0x20000458                        . = ALIGN (0x4)
+                0x20000458                        _ebss = .
+
+/DISCARD/
+ libc.a(*)
+ libm.a(*)
+ libgcc.a(*)
+
+.ARM.attributes
+                0x00000000       0x2b
+ *(.ARM.attributes)
+ .ARM.attributes
+                0x00000000       0x2d src/main.o
+ .ARM.attributes
+                0x0000002d       0x2d src/rtos_kernel.o
+ .ARM.attributes
+                0x0000005a       0x1b startup/startup_cortexm3.o
+OUTPUT(qemu_cortexm3_test.elf elf32-littlearm)
+LOAD linker stubs
+LOAD /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a
+LOAD /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libm.a
+LOAD /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7-m/nofp/libgcc.a
+
+.debug_info     0x00000000      0x5d3
+ .debug_info    0x00000000      0x1b5 src/main.o
+ .debug_info    0x000001b5      0x361 src/rtos_kernel.o
+ .debug_info    0x00000516       0xbd startup/startup_cortexm3.o
+
+.debug_abbrev   0x00000000      0x2f9
+ .debug_abbrev  0x00000000      0x139 src/main.o
+ .debug_abbrev  0x00000139      0x1a1 src/rtos_kernel.o
+ .debug_abbrev  0x000002da       0x1f startup/startup_cortexm3.o
+
+.debug_aranges  0x00000000       0xb8
+ .debug_aranges
+                0x00000000       0x40 src/main.o
+ .debug_aranges
+                0x00000040       0x48 src/rtos_kernel.o
+ .debug_aranges
+                0x00000088       0x30 startup/startup_cortexm3.o
+
+.debug_rnglists
+                0x00000000       0x5e
+ .debug_rnglists
+                0x00000000       0x2b src/main.o
+ .debug_rnglists
+                0x0000002b       0x33 src/rtos_kernel.o
+
+.debug_line     0x00000000      0x415
+ .debug_line    0x00000000      0x132 src/main.o
+ .debug_line    0x00000132      0x25f src/rtos_kernel.o
+ .debug_line    0x00000391       0x84 startup/startup_cortexm3.o
+
+.debug_str      0x00000000      0x442
+ .debug_str     0x00000000      0x442 src/main.o
+                                0x1bb (size before relaxing)
+ .debug_str     0x00000442      0x351 src/rtos_kernel.o
+ .debug_str     0x00000442       0xda startup/startup_cortexm3.o
+
+.comment        0x00000000       0x26
+ .comment       0x00000000       0x26 src/main.o
+                                 0x27 (size before relaxing)
+ .comment       0x00000026       0x27 src/rtos_kernel.o
+
+.debug_frame    0x00000000      0x19c
+ .debug_frame   0x00000000       0xc0 src/main.o
+ .debug_frame   0x000000c0       0xdc src/rtos_kernel.o
+
+.debug_ranges   0x00000000       0x28
+ .debug_ranges  0x00000000       0x28 startup/startup_cortexm3.o
+
+Cross Reference Table
+
+Symbol                                            File
+BusFault_Handler                                  startup/startup_cortexm3.o
+DebugMon_Handler                                  startup/startup_cortexm3.o
+HardFault_Handler                                 startup/startup_cortexm3.o
+MemManage_Handler                                 startup/startup_cortexm3.o
+NMI_Handler                                       startup/startup_cortexm3.o
+PendSV_Handler                                    startup/startup_cortexm3.o
+Reset_Handler                                     startup/startup_cortexm3.o
+SVC_Handler                                       startup/startup_cortexm3.o
+SysTick_Handler                                   src/rtos_kernel.o
+UsageFault_Handler                                startup/startup_cortexm3.o
+_estack                                           startup/startup_cortexm3.o
+g_current_task                                    src/rtos_kernel.o
+                                                  startup/startup_cortexm3.o
+g_next_scheduled_task                             src/rtos_kernel.o
+                                                  startup/startup_cortexm3.o
+g_system_ticks                                    src/rtos_kernel.o
+g_task_list_head                                  src/rtos_kernel.o
+main                                              src/main.o
+                                                  startup/startup_cortexm3.o
+print_char_uart0                                  src/main.o
+print_str_uart0                                   src/main.o
+rtos_init_systick                                 src/rtos_kernel.o
+rtos_schedule                                     src/rtos_kernel.o
+rtos_start_scheduler                              src/rtos_kernel.o
+                                                  src/main.o
+rtos_task_create                                  src/rtos_kernel.o
+                                                  src/main.o
+task1_function                                    src/main.o
+task2_function                                    src/main.o
